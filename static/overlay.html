@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+        function shadeBlendConvert(p, from, to) {
+            if(typeof(p)!="number"||p<-1||p>1||typeof(from)!="string"||(from[0]!='r'&&from[0]!='#')||(typeof(to)!="string"&&typeof(to)!="undefined"))return null; //ErrorCheck
+            if(!this.sbcRip)this.sbcRip=function(d){
+                var l=d.length,RGB=new Object();
+                if(l>9){
+                    d=d.split(",");
+                    if(d.length<3||d.length>4)return null;//ErrorCheck
+                    RGB[0]=i(d[0].slice(4)),RGB[1]=i(d[1]),RGB[2]=i(d[2]),RGB[3]=d[3]?parseFloat(d[3]):-1;
+                }else{
+                    switch(l){case 8:case 6:case 3:case 2:case 1:return null;} //ErrorCheck
+                    if(l<6)d="#"+d[1]+d[1]+d[2]+d[2]+d[3]+d[3]+(l>4?d[4]+""+d[4]:""); //3 digit
+                    d=i(d.slice(1),16),RGB[0]=d>>16&255,RGB[1]=d>>8&255,RGB[2]=d&255,RGB[3]=l==9||l==5?r(((d>>24&255)/255)*10000)/10000:-1;
+                }
+                return RGB;}
+            var i=parseInt,r=Math.round,h=from.length>9,h=typeof(to)=="string"?to.length>9?true:to=="c"?!h:false:h,b=p<0,p=b?p*-1:p,to=to&&to!="c"?to:b?"#000000":"#FFFFFF",f=sbcRip(from),t=sbcRip(to);
+            if(!f||!t)return null; //ErrorCheck
+            if(h)return "rgb("+r((t[0]-f[0])*p+f[0])+","+r((t[1]-f[1])*p+f[1])+","+r((t[2]-f[2])*p+f[2])+(f[3]<0&&t[3]<0?")":","+(f[3]>-1&&t[3]>-1?r(((t[3]-f[3])*p+f[3])*10000)/10000:t[3]<0?f[3]:t[3])+")");
+            else return "#"+(0x100000000+(f[3]>-1&&t[3]>-1?r(((t[3]-f[3])*p+f[3])*255):t[3]>-1?r(t[3]*255):f[3]>-1?r(f[3]*255):255)*0x1000000+r((t[0]-f[0])*p+f[0])*0x10000+r((t[1]-f[1])*p+f[1])*0x100+r((t[2]-f[2])*p+f[2])).toString(16).slice(f[3]>-1||t[3]>-1?1:3);
+        }
+
+        function formatEmotes(text, emotes) {
+            var splitText = text.split('');
+            for(var i in emotes) {
+                var e = emotes[i];
+                for(var j in e) {
+                    var mote = e[j];
+                    if(typeof mote == 'string') {
+                        mote = mote.split('-');
+                        mote = [parseInt(mote[0]), parseInt(mote[1])];
+                        var length =  mote[1] - mote[0],
+                                empty = Array.apply(null, new Array(length + 1)).map(function() { return '' });
+                        splitText = splitText.slice(0, mote[0]).concat(empty).concat(splitText.slice(mote[1] + 1, splitText.length));
+                        splitText.splice(mote[0], 1, '<img class="emoticon" src="http://static-cdn.jtvnw.net/emoticons/v1/' + i + '/3.0">');
+                    }
+                }
+            }
+            return splitText.join('');
+        }
+
+        $(function(){
+            var $time = $('.js-time'),
+                $viewers = $('.js-viewers'),
+                $chat = $('.chatbox');
+
+            var clock = function(){
+                var today = new Date();
+                var h = (today.getHours() % 12) + '';
+                var m = today.getMinutes() + '';
+                var s = today.getSeconds() + '';
+				
+                if(h == '0') {
+                    h = '12';
+                }
+                m = m.length == 1 ? '0' + m : m;
+                s = s.length == 1 ? '0' + s : s;
+                $time.html(h+':'+m+':'+s);
+            };
+
+            // Display local time
+            clock();
+            setInterval(clock, 1000);
+
+            var socket = io(window.location.origin + '/overlay');
+
+            socket.on('viewercount', function(msg) {
+                $viewers.html(msg);
+            });
+
+            socket.on('chat', function(obj) {
+                var $items = $chat.find('li');
+                if($items.length > 5) {
+                    $items.first().remove();
+                }
+                var name = (obj.user['display-name'] || obj.user['username'] || 'Anonymous');
+                var $message = $('<span class="message">' + formatEmotes(obj.message) + '</span>');
+
+
+                var colour = shadeBlendConvert(0.5, obj.user.color, '#FFF') || '#ffff00';
+
+                var css = 'color: ' + colour + ' '; /* +
+                        'background: -webkit-linear-gradient(top, ' + colour + ' 0%,' + colour + ' 39%,' + colour + ' 39%,#ffffff 40%,#ffffff 60%,' + colour + ' 61%,' + colour + ' 100%);' +
+                        'background: linear-gradient(to bottom, ' + colour + ' 0%,' + colour + ' 39%,#ffff00 39%,#ffffff 40%,#ffffff 60%,' + colour + ' 61%,' + colour + ' 100%);'; */
+
+                var $user = '<span data-text="' + name + '" class="name" style="' + css + '">' + name + '</span>';
+                var $item = $('<li></li>').append($user).append($message);
+                $chat.append($item);
+                $chat.scrollTop($chat.prop("scrollHeight"));
+            });
+        });
+    </script>
+
+    <script src="http://cdn.tmijs.org/js/0.0.24/tmi.js"></script>
+
+    <style type="text/css">
+        @font-face {
+            font-family: 's2hudregular';
+            src: url('http://localhost:5000/fonts/s2hud-webfont.eot');
+            src: url('http://localhost:5000/fonts/s2hud-webfont.eot?#iefix') format('embedded-opentype'),
+            url('http://localhost:5000/fonts/s2hud-webfont.woff2') format('woff2'),
+            url('http://localhost:5000/fonts/s2hud-webfont.woff') format('woff'),
+            url('http://localhost:5000/fonts/s2hud-webfont.ttf') format('truetype'),
+            url('http://localhost:5000/fonts/s2hud-webfont.svg#s2hudregular') format('svg');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html, body {
+            -webkit-font-smoothing: antialiased !important;
+        }
+
+        body {
+            font-family: "s2hudregular", sans-serif;
+            font-size: 50px;
+            margin: 0;
+            padding: 0;
+            text-transform: uppercase !important;
+            /* text-shadow: 1px 1px 0 rgba(0,0,0,0.7); */
+        }
+
+        .hud {
+            max-width: 480px;
+            padding: 20px 0 0 20px;
+            margin: 0;
+            list-style: none;
+        }
+
+        .hud .heading {
+            display: inline-block;
+            margin-bottom: 8px;
+            color: #FFF;
+            /*background: -webkit-linear-gradient(top, #ffff00 0%,#ffff00 39%,#ffff00 39%,#ffffff 40%,#ffffff 60%,#ffff00 61%,#ffff00 100%);
+            background: linear-gradient(to bottom, #ffff00 0%,#ffff00 39%,#ffff00 39%,#ffffff 40%,#ffffff 60%,#ffff00 61%,#ffff00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;*/
+            position: relative;
+        }
+        .hud .heading:after {
+            background: none;
+            content: attr(data-text);
+            left: 0;
+            position: absolute;
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.6);
+            top: 0;
+            z-index: -1;
+        }
+
+        .hud .value {
+            display: inline-block;
+            margin-left: 20px;
+            color: #FFF;
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .chatbox {
+            color: #FFF;
+            font-size: 30px;
+            max-height: 500px;
+            overflow: hidden;
+            max-width: 460px;
+            padding: 20px 20px 0 0;
+            margin: 0 20px;
+            list-style: none;
+        }
+
+        .chatbox li {
+            margin-bottom: 20px;
+            line-height: 30px;
+        }
+
+        .chatbox li .name {
+            display: inline-block;/*
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;*/
+            position: relative;
+            text-shadow: none;
+            line-height: 1;
+            color: #FFF;
+        }
+
+        .chatbox li .name:after {
+            background: none;
+            content: attr(data-text);
+            left: 0;
+            position: absolute;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.6);
+            top: 0;
+            z-index: -1;
+        }
+
+        .chatbox li .message {
+            margin-left: 20px;
+            color: #FFF;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .cf:before,
+        .cf:after {
+            content: " "; /* 1 */
+            display: table; /* 2 */
+        }
+
+        .cf:after {
+            clear: both;
+        }
+
+    </style>
+</head>
+<body>
+    <ul class="hud cf">
+        <!-- <li>
+            <span data-text="SCORE" class="heading">SCORE</span>
+            <span class="js-score value">0</span>
+        </li> -->
+        <li>
+            <span data-text="TIME" class="heading">TIME</span>
+            <span class="js-time value">00:00:00</span>
+        </li>
+        <li>
+            <span data-text="VIEWERS" class="heading">VIEWERS</span>
+            <span class="js-viewers value">0</span>
+        </li>
+    </ul>
+    <ul class="chatbox">
+
+    </ul>
+</body>
+</html>

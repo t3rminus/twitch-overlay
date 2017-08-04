@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <style type="text/css">
+        body {
+            background: #2E13CF;
+            margin:0;
+            padding:0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        #display {
+         /*   width: 1920px;
+            height: 1080px; */
+        }
+
+        canvas {
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: optimize-contrast;
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="scripts/zoetrope.js"></script>
+    <script type="text/javascript" src="scripts/animframe-polyfill.js"></script>
+    <script type="text/javascript" src="scripts/puppet-master.js"></script>
+    <script type="text/javascript" src="scripts/fontbrite.js"></script>
+    <script type="text/javascript" src="scripts/fonts.js"></script>
+    <script type="text/javascript" src="scripts/twitchclient.js"></script>
+</head>
+<body>
+    <canvas id="display" width="480" height="270"></canvas>
+
+    <img src="images/time.png" style="display: none" id="img-time" />
+    <img src="images/over.png" style="display: none" id="img-over" />
+</body>
+</html>

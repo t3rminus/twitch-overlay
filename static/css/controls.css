@@ -1,0 +1,39 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+body {
+	background: black;
+	font-family: sans-serif;
+	color: #FFF;
+}
+
+ul {
+	list-style: none;
+}
+
+.controls a {
+	display: block;
+	background-color: #FFFF00;
+	color: #000;
+	padding: 10px;
+	text-decoration: none;
+	text-align: center;
+	font-weight: bold;
+	border: 1px solid #000;
+}
+.chat {
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+	max-height: 100%;
+	display: block;
+}
+.chat li {
+	margin-bottom: 20px;
+	font-size: 24px;
+}
+.chat li .name:after {
+	content: ':  ';
+}
