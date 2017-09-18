@@ -292,7 +292,7 @@ $(function(){
 	window.timeOver = timeOver;
 
 	if(Zoetrope) {
-		var testanim = new Zoetrope('images/testanim.png', 15, {
+		var testanim = new Zoetrope('images/testanim.png', 18, {
 			'run': [0, 0, 48, 48, 6]
 		});
 	}

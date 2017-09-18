@@ -177,13 +177,11 @@
 
 	/**
 	 * FontBrite - The awesome color-changing bitmap font rendererer
-	 * @param {object} ctx A canvas context that will be used for output
 	 * @constructor
 	 * @public
 	 * @name FontBrite
 	 */
-	var FontBrite = function(ctx) {
-		this.ctx = ctx;
+	var FontBrite = function() {
 		this.fonts = {};
 		this.coloredFonts = {};
 		this.emoticonMap = {};
@@ -329,13 +327,16 @@
 			} else if(font['\uFFFD']) {
 				width += font['\uFFFD'][2];
 			}
+			width += (font.letterspacing || 0);
 		}
+		width -= (font.letterspacing || 0);
 
 		return width;
 	};
 
 	/**
 	 * Renders a single line of text in the given font
+	 * @param {Object} ctx A 2D rendering context to use
 	 * @param {string} font The name of a defined font to use
 	 * @param {string} string The string to render
 	 * @param {number} x The x-coordinate of the top-left of the output
@@ -345,7 +346,7 @@
 	 * @name FontBrite#renderLine
 	 * @function
 	 */
-	FontBrite.prototype.renderLine = function(font, string, x, y) {
+	FontBrite.prototype.renderLine = function(ctx, font, string, x, y) {
 		string = '' + string;
 
 		// Make sure the font
@@ -385,21 +386,21 @@
 
 			if(theFont[chars[i]]) {
 				char = theFont[chars[i]];
-				this.ctx.drawImage(theFont.img, char[0], char[1], char[2], char[3], x, y, char[2], char[3]);
-				x += char[2];
+				ctx.drawImage(theFont.img, char[0], char[1], char[2], char[3], x, y, char[2], char[3]);
+				x += char[2] + (theFont.letterspacing || 0);
 				height = Math.max(height, char[4] || char[3]);
 			} else if(this.emoticons[chars[i]]) {
 				var img = this.emoticons[chars[i]];
 				var dw = Math.ceil(theFont.space * 2.5),
 					dh = Math.ceil(dw * (img.height / img.width)),
 					dy = (lineHeight - dh) / 2;
-				this.ctx.drawImage(img, 0, 0, img.width, img.height, x, y + dy, dw, dh);
-				x += dw;
+				ctx.drawImage(img, 0, 0, img.width, img.height, x, y + dy, dw, dh);
+				x += dw + (theFont.letterspacing || 0);
 				height = Math.max(height, dh);
 			} else if(theFont['\uFFFD']) {
 				char = theFont['\uFFFD'];
-				this.ctx.drawImage(theFont.img, char[0], char[1], char[2], char[3], x, y, char[2], char[3]);
-				x += char[2];
+				ctx.drawImage(theFont.img, char[0], char[1], char[2], char[3], x, y, char[2], char[3]);
+				x += char[2] + (theFont.letterspacing || 0);
 				height = Math.max(height, char[4] || char[3]);
 			} else {
 				x += theFont.space;
@@ -411,7 +412,9 @@
 
 	FontBrite.prototype.getBlockHeight = function(font, string, w, lh) {
 		var _this = this;
-		w = w || _this.ctx.canvas.width;
+		if(!w) {
+			throw new Error('Attempting to get height for text block without defined width');
+		}
 
 		string = '' + string;
 
@@ -439,6 +442,7 @@
 
 	/**
 	 * Renders a block (paragraph) of text in the given font
+	 * @param {Object} ctx A 2D rendering context to use
 	 * @param {string} font The name of a defined font to use
 	 * @param {string} string The string to render
 	 * @param {number} [x=0] The x-coordinate of the top-left of the block
@@ -452,11 +456,11 @@
 	 * @name FontBrite#renderBlock
 	 * @function
 	 */
-	FontBrite.prototype.renderBlock = function(font, string, x, y, w, h, lh, align) {
+	FontBrite.prototype.renderBlock = function(ctx, font, string, x, y, w, h, lh, align) {
 		x = x || 0;
 		y = y || 0;
-		w = w || this.ctx.canvas.width - x;
-		h = h || this.ctx.canvas.height - y;
+		w = w || ctx.canvas.width - x;
+		h = h || ctx.canvas.height - y;
 		align = align || 'left';
 		string = '' + string;
 		this.renderingBlock = true;
@@ -486,14 +490,14 @@
 			if(align == 'right') {
 				// Draw the line right-aligned
 				lw = this.getStringWidth(font, line);
-				this.renderLine(font, line.replace(/^\s/,''), x + Math.round(w - lw), currentY);
+				this.renderLine(ctx, font, line.replace(/^\s/,''), x + Math.round(w - lw), currentY);
 			} else if(align == 'center') {
 				// Draw the line centered
 				lw = this.getStringWidth(font, line);
-				this.renderLine(font, line.replace(/^\s/,''), x + Math.round((w - lw) / 2), currentY);
+				this.renderLine(ctx, font, line.replace(/^\s/,''), x + Math.round((w - lw) / 2), currentY);
 			} else {
 				// Draw the line
-				this.renderLine(font, line.replace(/^\s/,''), x, currentY);
+				this.renderLine(ctx, font, line.replace(/^\s/,''), x, currentY);
 			}
 
 			// Move down to the next line
@@ -684,7 +688,22 @@
 		this.coloredFonts[name] = newFont;
 		return name;
 	};
-
+	
+	FontBrite.prototype.cloneFont = function(srcFont, newName, img) {
+		srcFont = this.getFont(srcFont);
+		
+		var newFont = {};
+		for(var char in srcFont) {
+			if (srcFont.hasOwnProperty(char)) {
+				newFont[char] = srcFont[char];
+			}
+		}
+		newFont.img = img;
+		
+		this.defineFont(newFont, newName);
+		return newFont;
+	};
+	
 	FontBrite.prototype.defineEmoticon = function(string, image) {
 		var _this = this;
 

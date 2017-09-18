@@ -42,11 +42,10 @@
 	Zoetrope.prototype.draw = function(ctx, animation, x, y, dt) {
 		if(this.animations[animation]) {
 			var a = this.animations[animation];
-			var ft = Math.floor((dt - a[6]) / this.delay);
-			if(ft > 0) {
-				a[5] = (a[5] + ft) % a[4];
-				a[6] = dt; // Save frame time
+			if(dt % this.delay < a[6]) {
+				a[5] = Math.floor(dt / this.delay) % a[4];
 			}
+			a[6] = dt % this.delay;
 			var xoff = (a[0] + (a[2] * a[5]));
 			ctx.drawImage(this.image, xoff, a[1], a[2], a[3], x, y, a[2], a[3]);
 		}

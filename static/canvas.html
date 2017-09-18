@@ -19,6 +19,7 @@
         #display {
          /*   width: 1920px;
             height: 1080px; */
+			border: 1px solid #F00;
         }
 
         canvas {
@@ -31,15 +32,16 @@
         }
     </style>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-
-    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" data-main="scripts/init"  src="scripts/require.js"></script>
+    
+    <!--
     <script type="text/javascript" src="scripts/zoetrope.js"></script>
     <script type="text/javascript" src="scripts/animframe-polyfill.js"></script>
     <script type="text/javascript" src="scripts/puppet-master.js"></script>
     <script type="text/javascript" src="scripts/fontbrite.js"></script>
     <script type="text/javascript" src="scripts/fonts.js"></script>
     <script type="text/javascript" src="scripts/twitchclient.js"></script>
+    -->
 </head>
 <body>
     <canvas id="display" width="480" height="270"></canvas>
