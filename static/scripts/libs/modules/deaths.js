@@ -1,10 +1,10 @@
 'use strict';
 
-define(['libs/fontbrite','libs/fonts/deaths'], function(FontBrite, deathFont) {
+define(['libs/fontbrite','libs/fonts/death-font'], function(FontBrite, deathFont) {
 	var fb = new FontBrite();
 	fb.defineFont(deathFont, 'death-font');
 	
-	var deaths = '0';
+	var deaths = '123456789';
 	document.addEventListener('socketio.death', function(event) {
 		deaths = '' + event.data;
 	});
@@ -14,6 +14,6 @@ define(['libs/fontbrite','libs/fonts/deaths'], function(FontBrite, deathFont) {
 	deathImg.src = 'http://localhost:5000/images/death-graphic.png';
 	return function(ctx) {
 		ctx.drawImage(deathImg, this.x, this.y);
-		fb.renderLine(ctx, 'death-font', deaths, this.x + 24, this.y + 9);
+		fb.renderLine(ctx, 'death-font', deaths, this.x + 23, this.y + 9);
 	}
 });

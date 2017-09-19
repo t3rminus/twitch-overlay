@@ -17,9 +17,10 @@
         }
 
         #display {
+			width: 100%;
+			height: auto;
          /*   width: 1920px;
             height: 1080px; */
-			border: 1px solid #F00;
         }
 
         canvas {
@@ -31,7 +32,11 @@
             -ms-interpolation-mode: nearest-neighbor;
         }
     </style>
-
+	<script type="text/javascript">
+		window._layout = {
+			
+		};
+	</script>
     <script type="text/javascript" data-main="scripts/init"  src="scripts/require.js"></script>
     
     <!--
@@ -44,7 +49,7 @@
     -->
 </head>
 <body>
-    <canvas id="display" width="480" height="270"></canvas>
+    <canvas id="display" width="960" height="540"></canvas>
 
     <img src="images/time.png" style="display: none" id="img-time" />
     <img src="images/over.png" style="display: none" id="img-over" />
