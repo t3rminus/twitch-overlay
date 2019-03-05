@@ -1,5 +1,5 @@
 'use strict';
-define(['socket.io'], function(io) {
+define(['libs/window-event', 'socket.io'], function(windowEvent, io) {
 	var socket = io(window.location.origin + '/overlay');
 
 	var onevent = socket.onevent;
@@ -11,8 +11,6 @@ define(['socket.io'], function(io) {
 	};
 	
 	socket.on('*',function(event, data) {
-		var tmpEvent = new Event('socketio.' + event, { 'bubbles': false, 'cancelable': true });
-		tmpEvent.data = data;
-		document.dispatchEvent(tmpEvent);
+		windowEvent('socketio.' + event, data);
 	});
 });

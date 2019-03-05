@@ -5,7 +5,7 @@ const config = _.defaultsDeep({}, require('./config.js'), {
 	port: 5000
 });
 
-config.tmi.handle = 'trackingthepros';
+//config.tmi.handle = 'jasonr';
 
 // Init Webserver
 const webserver = require('./lib/webserver');

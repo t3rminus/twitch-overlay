@@ -22,10 +22,10 @@ var clock = function(timer) {
 	}
 };
 
-define(['libs/fontbrite','libs/fonts/basehud', 'libs/fonts/mania-score',
+define(['libs/window-event','libs/fontbrite','libs/fonts/basehud', 'libs/fonts/mania-score',
 		'libs/fonts/mania-score-white','libs/fonts/mania-score-red'],
 
-	function(FontBrite, basehud, maniaScore, maniaScoreWhite, maniaScoreRed) {
+	function(windowEvent, FontBrite, basehud, maniaScore, maniaScoreWhite, maniaScoreRed) {
 	var fb = new FontBrite();
 	fb.defineFont(maniaScore, 'mania-score');
 	fb.defineFont(maniaScoreWhite, 'mania-score-white');
@@ -36,16 +36,39 @@ define(['libs/fontbrite','libs/fonts/basehud', 'libs/fonts/mania-score',
 		viewers = '' + event.data;
 	});
 	
-	var timer = null, redTimer = false;
+	var timer = null, pausedTimer = false;
 	document.addEventListener('socketio.timer', function(event) {
-		timer = event.data;
+		switch(event.data) {
+			case 'pause-timer':
+				pausedTimer = !pausedTimer;
+				break;
+			case 'time-timer':
+				timer = null;
+				break;
+			case '5-timer':
+				timer = 100;
+				break;
+			case '10-timer':
+				timer = 600;
+				break;
+		}
 	});
+	
+	setInterval(function(){
+		if(!pausedTimer && timer !== null && timer > 0) {
+			timer--;
+		} else if(timer === 0) {
+			timer = null;
+			windowEvent('animation','time-over');
+			windowEvent('sound','time-over');
+		}
+	}, 1000);
 	
 	var fontHeight = fb.getStringHeight('mania-score','TIMESCOREVIEWERS09123456789:') - 4;
 	var lineHeight = fontHeight + 4;
 	
 	return function(ctx) {
-		var timerFont = timer !== null && redTimer ? 'mania-score-red' : 'mania-score';
+		var timerFont = timer !== null && (timer < 120 && timer % 2 === 1) ? 'mania-score-red' : 'mania-score';
 		
 		var clockStr = clock(timer),
 			scoreStr = '0';
@@ -55,15 +78,15 @@ define(['libs/fontbrite','libs/fonts/basehud', 'libs/fonts/mania-score',
 			viewerW = fb.getStringWidth('mania-score-white', viewers);
 		
 		fb.renderLine(ctx, 'mania-score-white', clockStr, this.x + this.w - clockW, this.y);
-		fb.renderLine(ctx, 'mania-score-white', '0', this.x + this.w - scoreW, this.y + lineHeight);
-		fb.renderLine(ctx, 'mania-score-white', viewers, this.x + this.w - viewerW, this.y + (lineHeight * 2));
+		//fb.renderLine(ctx, 'mania-score-white', '0', this.x + this.w - scoreW, this.y + lineHeight);
+		fb.renderLine(ctx, 'mania-score-white', viewers, this.x + this.w - viewerW, this.y + (lineHeight));
 		
 		// Cause timer to blink in last minute
 		if(timer === null || timer === 0 || (timer > 60 || timer % 2 === 1)) {
-			fb.renderLine(ctx, timerFont, 'TIME', this.x, this.y);
+			fb.renderLine(ctx, timerFont, (timer !== null) ? 'TIMER' : 'TIME', this.x, this.y);
 		}
 		
-		fb.renderLine(ctx, 'mania-score', 'SCORE', this.x, this.y + lineHeight);
-		fb.renderLine(ctx, 'mania-score', 'VIEWERS', this.x, this.y + (lineHeight * 2));
+		//fb.renderLine(ctx, 'mania-score', 'SCORE', this.x, this.y + lineHeight);
+		fb.renderLine(ctx, 'mania-score', 'VIEWERS', this.x, this.y + (lineHeight));
 	}
 });

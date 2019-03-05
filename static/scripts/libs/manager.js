@@ -5,7 +5,7 @@ define([], function() {
 		this.currentLayout = null;
 	};
 	
-	LayoutManager.prototype.addLayout = function(name, def) {
+	LayoutManager.prototype.addLayout = function(name, def, activate) {
 		var _this = this;
 		if(def.elements && def.elements.length) {
 			var modules = def.elements.map(function(e) { return 'libs/modules/' + e.module; });
@@ -14,6 +14,9 @@ define([], function() {
 					def.elements[i].render = arguments[i];
 				}
 				_this.layouts[name] = def;
+				if(activate) {
+					_this.currentLayout = name;
+				}
 			});
 		}
 	};

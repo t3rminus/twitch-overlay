@@ -4,7 +4,7 @@ define(['libs/fontbrite','libs/fonts/death-font'], function(FontBrite, deathFont
 	var fb = new FontBrite();
 	fb.defineFont(deathFont, 'death-font');
 	
-	var deaths = '123456789';
+	var deaths = '0';
 	document.addEventListener('socketio.death', function(event) {
 		deaths = '' + event.data;
 	});

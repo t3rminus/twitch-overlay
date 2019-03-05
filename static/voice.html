@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Text-to-Speech</title>
+	<style type="text/css">
+		html, body {
+			height: 100%;
+			display: block;
+		}
+		body {
+			margin: 0; padding: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			background-color: #222;
+			color: #FFF;
+			font-family: sans-serif;
+			max-height: 100%;
+		}
+		.buttons {
+			flex: 0 1 auto;
+			margin-bottom: 14px;
+			padding: 8px;
+		}
+		.buttons button {
+			background: #FFF;
+			padding: 16px;
+			font-size: 120%;
+		}
+		.chat-wrap {
+			flex: 1 1 10px;
+			padding: 8px;
+			overflow: hidden;
+			overflow-y: auto;
+		}
+		.chat {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+		.chat li {
+			margin-bottom: 14px;
+		}
+	</style>
+</head>
+<body>
+	<div class="buttons">
+		<button class="start">Start</button>
+	</div>
+	<div class="chat-wrap">
+		<ul class="chat"></ul>
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/scripts/nosleep.min.js"></script>
+	<script type="text/javascript" src='https://code.responsivevoice.org/responsivevoice.js'></script>
+	<script type="text/javascript">
+		'use strict';
+		var $window = $(window);
+		var $chatWrap = $('.chat-wrap');
+		var socket = io(window.location.origin + '/overlay');
+		var voiceQueue = [];
+		socket.on('chat', function(obj) {
+			var name = (obj.user['display-name'] || obj.user['username'] || 'Unknown??');
+			name = name.replace(/_/g,'').replace(/[0-9]+$/,'');
+			var emoteCount = (obj.message.match(/<img alt="[^"]+".+?\/>/g) || []).length;
+			if(emoteCount <= 3) {
+				var message = obj.message.replace(/<img alt="([^"]+)".+?\/>/g, function(_, emote) {
+					emote = emote.split(/(?=[A-Z])/);
+					return emote.join(' ');
+				});
+				message = message.replace(/:\)/ig,'happy face');
+				message = message.replace(/:D/ig,'very happy face');
+				message = message.replace(/:\(/ig,'sad face');
+				message = message.replace(/:P/ig,'stuck-out tongue');
+				message = message.replace(/:s/ig,'confused tongue');
+				message = message.replace(/D:/ig,'oh no face');
+			} else {
+				message = '> 4 emotes';
+			}
+			
+			if(!/^!/.test(message)) {
+				voiceQueue.push({ name: name, message: message});
+				var $chat = $('.chat').append('<li><span class="chat__name">'+name+'</span><span class="chat__divider">: </span>' +
+					'<span class="chat__message">' + message + '</span>');
+				$chatWrap.scrollTop($chat.height());
+				pulseVoiceQueue();
+				if(voiceQueue.length > 4) {
+					voiceQueue.shift();
+				}
+			}
+		});
+		
+		var playing = false;
+		function pulseVoiceQueue() {
+			if(voiceQueue.length) {
+				if(!playing) {
+					playing = true;
+					var item = voiceQueue.shift();
+					responsiveVoice.speak(item.name + ' says: ' + item.message, 'US English Female', {
+						rate: 1.1,
+						onend: function() {
+							playing = false;
+							pulseVoiceQueue();
+						}
+					});
+				}
+			}
+		}
+		
+		var noSleep = new NoSleep();
+		var sleeping = false, voiceDisabled = true;
+		$('.start').on('click', function(){
+			responsiveVoice.speak('Voice Enabled');
+			if(sleeping) {
+				noSleep.disable();
+			} else {
+				noSleep.enable();
+			}
+		});
+	</script>
+</body>
+</html>

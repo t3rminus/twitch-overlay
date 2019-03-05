@@ -1,31 +1,9 @@
 'use strict';
-requirejs(['libs/socket', 'libs/manager'], function(__, LayoutManager) {
+requirejs(['libs/socket', 'libs/manager', 'libs/animations'], function(__, LayoutManager, Animations) {
 	var lm = new LayoutManager();
-	lm.addLayout('169_leftchat', {
-		elements: [
-			{
-				module: 'chat',
-				x: 10,
-				y: 64,
-				w: 106,
-				h: 178,
-				align: 'left'
-			},
-			{
-				module: 'hud',
-				x: 10,
-				y: 10,
-				w: 106,
-				h: 48
-			},
-			{
-				module: 'deaths',
-				x: 10,
-				y: 244
-			}
-		]
-	});
-	lm.setLayout('169_leftchat');
+	lm.addLayout('window_main', window._layout || {}, true);
+	
+
 	
 	var init = function() {
 		var display = document.getElementById('display'),

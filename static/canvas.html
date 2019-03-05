@@ -21,10 +21,11 @@
 			height: auto;
          /*   width: 1920px;
             height: 1080px; */
+			outline: 2px solid #FFF;
         }
 
         canvas {
-            image-rendering: optimizeSpeed;
+           image-rendering: optimizeSpeed;
             image-rendering: -moz-crisp-edges;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: optimize-contrast;
@@ -34,7 +35,28 @@
     </style>
 	<script type="text/javascript">
 		window._layout = {
-			
+			elements: [
+				{
+					module: 'chat',
+					x: 10,
+					y: 64,
+					w: 106,
+					h: 178,
+					align: 'left'
+				},
+				{
+					module: 'hud',
+					x: 10,
+					y: 10,
+					w: 106,
+					h: 48
+				}/*,
+				{
+					module: 'deaths',
+					x: 10,
+					y: 244
+				}*/
+			]
 		};
 	</script>
     <script type="text/javascript" data-main="scripts/init"  src="scripts/require.js"></script>
@@ -49,7 +71,7 @@
     -->
 </head>
 <body>
-    <canvas id="display" width="960" height="540"></canvas>
+    <canvas id="display" width="480" height="270"></canvas>
 
     <img src="images/time.png" style="display: none" id="img-time" />
     <img src="images/over.png" style="display: none" id="img-over" />
